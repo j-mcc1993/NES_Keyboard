@@ -10,6 +10,6 @@ void setup() {
 
 void loop() {
   nes.latchData();  // Latch controller data
-  nes.writeData();  // Store button states
+  nes.storeData();  // Store button states
   nes.readData();   // Read button states + Press keys
 }

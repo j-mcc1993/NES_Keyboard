@@ -16,7 +16,7 @@ class NES_Keyboard {
 		NES_Keyboard(void);
 		NES_Keyboard(byte l, byte p, byte d);
 		void latchData(void);
-		void writeData(void);
+		void storeData(void);
 		void readData(void);
 		void setKeys(char input[]);
 	private:

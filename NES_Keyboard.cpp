@@ -51,7 +51,7 @@ void NES_Keyboard::pulseClock(void) {
   delayMicroseconds(5);
 }
 
-void NES_Keyboard::writeData(void) {
+void NES_Keyboard::storeData(void) {
   data_byte = 0;
   for (int i = 0; i < 8; i++) {
     data_byte = data_byte | (digitalRead(data) << i);
