@@ -1,0 +1,4 @@
+NES_Keyboard	KEYWORD1
+latchData	KEYWORD2
+writeData	KEYWORD2
+readData	KEYWORD2
