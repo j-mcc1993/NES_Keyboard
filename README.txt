@@ -11,5 +11,5 @@ NES Connector configuration:
 unused ->  o o <- Latch
 unused ->  o o <- Data
 *****************************************************************************************
-Copyright (c) 2013 James P. McCullough. All rights reserved.
+Copyright (c) 2014 James P. McCullough. All rights reserved.
 *****************************************************************************************
