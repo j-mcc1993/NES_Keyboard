@@ -9,8 +9,9 @@
 #include "NES_Keyboard.h"
 #include <Arduino.h>  
 
+//stores 1 or 0 indicating whether a button is pressed or not
 byte count[] = {0,0,0,0,0,0,0,0}; 
-char keys[] = "abcdefgh"; 
+char keys[] = "abcdefgh"; //the keys to be pressed
 
 NES_Keyboard::NES_Keyboard(void) {
   pulse = 5;
@@ -20,6 +21,7 @@ NES_Keyboard::NES_Keyboard(void) {
   pinMode(latch, OUTPUT);
   pinMode(pulse, OUTPUT);
   pinMode(data, INPUT);
+  //set a clean low signal
   digitalWrite(latch, LOW); 
   digitalWrite(pulse, LOW);
 }
@@ -36,6 +38,7 @@ NES_Keyboard::NES_Keyboard(byte p, byte l, byte d) {
   digitalWrite(pulse, LOW);
 }
 
+//tells controller to latch data by sending 12uS pulse on latch pin
 void NES_Keyboard::latchData(void) {
   digitalWrite(latch, HIGH);
   delayMicroseconds(12);
@@ -43,6 +46,7 @@ void NES_Keyboard::latchData(void) {
   delayMicroseconds(6);
 }
 
+//shifts data from controller by pulsing clock pin
 void NES_Keyboard::pulseClock(void) {
   digitalWrite(pulse, HIGH);
   delayMicroseconds(5);
@@ -51,6 +55,10 @@ void NES_Keyboard::pulseClock(void) {
   delayMicroseconds(5);
 }
 
+<<<<<<< HEAD
+=======
+//stores data from controller to be iterated through
+>>>>>>> Added Comments
 void NES_Keyboard::storeData(void) {
   data_byte = 0;
   for (int i = 0; i < 8; i++) {
@@ -59,6 +67,7 @@ void NES_Keyboard::storeData(void) {
   }
 }
 
+//iterates through data and presses appropiate keys
 void NES_Keyboard::readData(void) {
   for (int i = 0; i < 8; i++) {
     tempbit = bitRead(data_byte, i);
@@ -74,6 +83,7 @@ void NES_Keyboard::readData(void) {
   delay(16);
 }
 
+//set which keys to be pressed
 void NES_Keyboard::setKeys(char input[]) {
 	for (int i = 0; i < 8; i++) {
 		keys[i] = input[i];
