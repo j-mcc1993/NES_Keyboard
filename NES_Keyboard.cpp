@@ -1,31 +1,48 @@
 /*
-  NES_Keyboard.h - A library to control a keyboard with an NES controller.
+ * Filename: NES_Keyboard.cpp
+ * Author: James McCullough
+ * Description: This program encapsulates an interface for controlling NES
+ * 		controllers with arduino.
+ * !! WARNING !!  This code requires a Leonardo or Micro.  Using a Due may
+ * brick your board due its 3.3v requirement.
+ *
+ * Copyright (c) 2014 James P. McCullough. All rights reserved.
+ */
 
-  *WARNING* This code requires a Leonardo or Micro (NOT DUE!!!)
-  (The Due runs on 3.3v and would likely break if you try to run this code)
-
-  Copyright (c) 2014 James P. McCullough. All rights reserved.
-*/
 #include "NES_Keyboard.h"
-#include <Arduino.h>  
 
-//stores 1 or 0 indicating whether a button is pressed or not
-byte count[] = {0,0,0,0,0,0,0,0}; 
-char keys[] = "abcdefgh"; //the keys to be pressed
+/* stores 1 or 0 indicating whether a button is pressed or not */
+byte isPressed[] = {0,0,0,0,0,0,0,0}; 
+char keys[] = "abcdefgh"; 	/* the keys to be pressed */
 
+/*
+ * NES_Keyboard::NES_Keyboard(void);
+ *
+ * This class handles the serial communication between the arduino and the
+ * NES controller.  This code sets the default pins and starts the interaction
+ * with the keyboard.
+ */
 NES_Keyboard::NES_Keyboard(void) {
-  pulse = 5;
-  latch = 7;
-  data = 9;
+  pulse = PULSE;
+  latch = LATCH;
+  data = DATA;
 
   pinMode(latch, OUTPUT);
   pinMode(pulse, OUTPUT);
   pinMode(data, INPUT);
-  //set a clean low signal
+  
+  /* set a clean low signal */
   digitalWrite(latch, LOW); 
   digitalWrite(pulse, LOW);
+
+  Keyboard.begin();
 }
 
+/*
+ * NES_Keyboard::NES_Keyboard(byte p, byte l, byte d);
+ *
+ * An overloaded constructor to allow users to choose which pins to use.
+ */
 NES_Keyboard::NES_Keyboard(byte p, byte l, byte d) {
   pulse = p;
   latch = l;
@@ -34,58 +51,103 @@ NES_Keyboard::NES_Keyboard(byte p, byte l, byte d) {
   pinMode(latch, OUTPUT);
   pinMode(pulse, OUTPUT);
   pinMode(data, INPUT);
+
+  /* set a clean low signal */
   digitalWrite(latch, LOW); 
   digitalWrite(pulse, LOW);
+
+  Keyboard.begin();
 }
 
-//tells controller to latch data by sending 12uS pulse on latch pin
+/*
+ * void NES_Keyboard::latchData(void);
+ *
+ * Sends a 12uS high pulse to instruct controller to latch or store its
+ * button states internally.
+ *
+ * No return value.
+ */
 void NES_Keyboard::latchData(void) {
   digitalWrite(latch, HIGH);
-  delayMicroseconds(12);
+  delayMicroseconds(LATCH_PULSE);
   digitalWrite(latch, LOW);
-  delayMicroseconds(6);
+  delayMicroseconds(LATCH_DELAY);
 }
 
-//shifts data from controller by pulsing clock pin
+/*
+ * void NES_Keyboard::pulseClock(void);
+ *
+ * Sends a 12uS high pulse to the clock pin with a 50% duty cycle.
+ * Each call to this function instructs the controller to respond
+ * with a high or low signal on the data line indicated whether
+ * the corresponding button was pressed.
+ *
+ * No return value.
+ */
 void NES_Keyboard::pulseClock(void) {
   digitalWrite(pulse, HIGH);
-  delayMicroseconds(5);
+  delayMicroseconds(PULSE_DELAY);
 
   digitalWrite(pulse, LOW);
-  delayMicroseconds(5);
+  delayMicroseconds(PULSE_DELAY);
 }
 
-<<<<<<< HEAD
-=======
-//stores data from controller to be iterated through
->>>>>>> Added Comments
+/*
+ * void NES_Keyboard::storeData(void);
+ *
+ * Stores the high and low signals from the data line while pulsing the
+ * clock line to obtain button states.
+ *
+ * No return value.
+ */
 void NES_Keyboard::storeData(void) {
   data_byte = 0;
-  for (int i = 0; i < 8; i++) {
-    data_byte = data_byte | (digitalRead(data) << i);
+  for (int i = 0; i < BYTE_SIZE; i++) {
+    /* Set the current bit with OR and shift it in */
+    data_byte |= (digitalRead(data) << i);
     pulseClock();
   }
 }
 
-//iterates through data and presses appropiate keys
+/*
+ * void NES_Keyboard::readData(void);
+ *
+ * This function obtains the button states by using a bitmask to obtain
+ * the value of each bit in the data_byte.  The controller sends a low
+ * pulse when the controller is low, and a high pulse when the button
+ * is unpressed.  The isPressed array stores a 1 or 0 to indicate whether
+ * a button is currently pressed or not, which will determine whether to
+ * press or release that button.
+ *
+ * No return value.
+ */
 void NES_Keyboard::readData(void) {
-  for (int i = 0; i < 8; i++) {
-    tempbit = bitRead(data_byte, i);
-    if (tempbit == 0 && count[i] == 0) { 
-      count[i] = 1;
+  mask = 0x01;
+  for (int i = 0; i < BYTE_SIZE; i++) {
+    mask = mask << i;
+    currentbit = data_byte & mask;
+    if (currentbit == 0 && isPressed[i] == 0) { 
+      isPressed[i] = 1;
       Keyboard.press(keys[i]);
     }
-    else if (tempbit == 1 && count[i] == 1) {
-      count[i] = 0;
+    else if (currentbit == 1 && isPressed[i] == 1) {
+      isPressed[i] = 0;
       Keyboard.release(keys[i]);
     }
   }
-  delay(16);
+  delay(READ_DELAY);
 }
 
-//set which keys to be pressed
+/*
+ * void NES_Keyboard::setKeys(void);
+ *
+ * This function initializes the keys array with a user supplied array to allow
+ * for custom keyboard setups.
+ *
+ * No return value.
+ */
 void NES_Keyboard::setKeys(char input[]) {
-	for (int i = 0; i < 8; i++) {
+	for (int i = 0; i < BYTE_SIZE; i++) {
 		keys[i] = input[i];
 	}
 }

@@ -12,6 +12,17 @@
 #include <Arduino.h>
 #include <Keyboard.h>
 
+#define BYTE_SIZE 8
+	
+#define LATCH_PULSE 12
+#define LATCH_DELAY 6
+#define PULSE_DELAY 6
+#define READ_DELAY 16
+
+#define PULSE 5
+#define LATCH 7
+#define DATA 9
+
 class NES_Keyboard {
 	public:
 		NES_Keyboard(void);
@@ -22,7 +33,7 @@ class NES_Keyboard {
 		void setKeys(char input[]);
 	private:
 		void pulseClock(void);
-		byte latch, pulse, data, data_byte, tempbit;
+		byte latch, pulse, data, data_byte, currentbit, mask;
 };
 
 #endif
