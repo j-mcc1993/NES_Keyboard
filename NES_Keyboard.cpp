@@ -11,9 +11,11 @@
 
 #include "NES_Keyboard.h"
 
-/* stores 1 or 0 indicating whether a button is pressed or not */
-byte isPressed[] = {0,0,0,0,0,0,0,0}; 
+/* Stores true or false indicating whether a button is pressed or not */
+boolean isPressed[] = {false, false, false, false, false, false, false, false};
+
 char keys[] = "abcdefgh"; 	/* the keys to be pressed */
+
 
 /*
  * NES_Keyboard::NES_Keyboard(void);
@@ -22,42 +24,44 @@ char keys[] = "abcdefgh"; 	/* the keys to be pressed */
  * NES controller.  This code sets the default pins and starts the interaction
  * with the keyboard.
  */
-NES_Keyboard::NES_Keyboard(void) {
-  pulse = PULSE;
+NES_Keyboard::NES_Keyboard() {
+  clck = CLOCK;
   latch = LATCH;
   data = DATA;
 
   pinMode(latch, OUTPUT);
-  pinMode(pulse, OUTPUT);
+  pinMode(clck, OUTPUT);
   pinMode(data, INPUT);
   
   /* set a clean low signal */
   digitalWrite(latch, LOW); 
-  digitalWrite(pulse, LOW);
+  digitalWrite(clck, LOW);
 
   Keyboard.begin();
 }
+
 
 /*
  * NES_Keyboard::NES_Keyboard(byte p, byte l, byte d);
  *
  * An overloaded constructor to allow users to choose which pins to use.
  */
-NES_Keyboard::NES_Keyboard(byte p, byte l, byte d) {
-  pulse = p;
+NES_Keyboard::NES_Keyboard(byte c, byte l, byte d) {
+  clck = c;
   latch = l;
   data = d;
 
   pinMode(latch, OUTPUT);
-  pinMode(pulse, OUTPUT);
+  pinMode(clck, OUTPUT);
   pinMode(data, INPUT);
 
   /* set a clean low signal */
   digitalWrite(latch, LOW); 
-  digitalWrite(pulse, LOW);
+  digitalWrite(clck, LOW);
 
   Keyboard.begin();
 }
+
 
 /*
  * void NES_Keyboard::latchData(void);
@@ -67,12 +71,14 @@ NES_Keyboard::NES_Keyboard(byte p, byte l, byte d) {
  *
  * No return value.
  */
-void NES_Keyboard::latchData(void) {
+void NES_Keyboard::latchData() {
   digitalWrite(latch, HIGH);
-  delayMicroseconds(LATCH_PULSE);
+  delayMicroseconds(LONG_DELAY);
+
   digitalWrite(latch, LOW);
-  delayMicroseconds(LATCH_DELAY);
+  delayMicroseconds(SHORT_DELAY);
 }
+
 
 /*
  * void NES_Keyboard::pulseClock(void);
@@ -84,13 +90,14 @@ void NES_Keyboard::latchData(void) {
  *
  * No return value.
  */
-void NES_Keyboard::pulseClock(void) {
-  digitalWrite(pulse, HIGH);
-  delayMicroseconds(PULSE_DELAY);
+void NES_Keyboard::pulseClock() {
+  digitalWrite(clck, HIGH);
+  delayMicroseconds(CLOCK_DELAY);
 
-  digitalWrite(pulse, LOW);
-  delayMicroseconds(PULSE_DELAY);
+  digitalWrite(clck, LOW);
+  delayMicroseconds(SHORT_DELAY);
 }
+
 
 /*
  * void NES_Keyboard::storeData(void);
@@ -101,13 +108,15 @@ void NES_Keyboard::pulseClock(void) {
  * No return value.
  */
 void NES_Keyboard::storeData(void) {
-  data_byte = 0;
+  state = 0;
   for (int i = 0; i < BYTE_SIZE; i++) {
-    /* Set the current bit with OR and shift it in */
-    data_byte |= (digitalRead(data) << i);
+    if (digitalRead(data) == LOW) {
+      state |= (MASK << i);
+    }
     pulseClock();
   }
 }
+
 
 /*
  * void NES_Keyboard::readData(void);
@@ -122,21 +131,21 @@ void NES_Keyboard::storeData(void) {
  * No return value.
  */
 void NES_Keyboard::readData(void) {
-  mask = 0x01;
   for (int i = 0; i < BYTE_SIZE; i++) {
-    mask = mask << i;
-    currentbit = data_byte & mask;
-    if (currentbit == 0 && isPressed[i] == 0) { 
-      isPressed[i] = 1;
+    byte currentbit = state & (MASK << i);
+    if (currentbit && !isPressed[i]) { 
+      isPressed[i] = true;
       Keyboard.press(keys[i]);
     }
-    else if (currentbit == 1 && isPressed[i] == 1) {
+    else if (!currentbit && isPressed[i]) {
       isPressed[i] = 0;
       Keyboard.release(keys[i]);
     }
   }
+
   delay(READ_DELAY);
 }
+
 
 /*
  * void NES_Keyboard::setKeys(void);
@@ -147,7 +156,7 @@ void NES_Keyboard::readData(void) {
  * No return value.
  */
 void NES_Keyboard::setKeys(char input[]) {
-	for (int i = 0; i < BYTE_SIZE; i++) {
-		keys[i] = input[i];
-	}
+  for (int i = 0; i < BYTE_SIZE; i++) {
+    keys[i] = input[i];
+  }
 }

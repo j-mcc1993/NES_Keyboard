@@ -17,26 +17,38 @@
 
 #define BYTE_SIZE 8
 	
-#define LATCH_PULSE 12
-#define LATCH_DELAY 6
-#define PULSE_DELAY 6
-#define READ_DELAY 16
+#define LONG_DELAY  12        // Duration to set latch high
+#define SHORT_DELAY 3         // Delay after setting latch high 
+#define CLOCK_DELAY 6         // 50% of the clock duty cycle
+#define READ_DELAY  16        // Delay between button state sampling
 
-#define PULSE 5
-#define LATCH 7
-#define DATA 9
+#define CLOCK 5               // Clock pin
+#define LATCH 7               // Latch pin
+#define DATA 9                // Data pin
+
+#define MASK 0x1
 
 class NES_Keyboard {
+
 	public:
-		NES_Keyboard(void);
-		NES_Keyboard(byte l, byte p, byte d);
-		void latchData(void);
-		void storeData(void);
-		void readData(void);
+
+		NES_Keyboard();
+
+		NES_Keyboard(byte c, byte l, byte d);
+
+		void latchData();
+
+		void storeData();
+
+		void readData();
+
 		void setKeys(char input[]);
+
 	private:
+
+		byte clck, latch, data, state;
+    
 		void pulseClock(void);
-		byte latch, pulse, data, data_byte, currentbit, mask;
 };
 
 #endif
