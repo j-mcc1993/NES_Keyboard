@@ -1,7 +1,9 @@
-NES_Keyboard - A library for controlling keyboard output with an Arduino Leonardo or Micro and a NES controller.
-
-See examples for implementation.
+NES_Keyboard - A library for controlling keyboard output with an Arduino Leonardo or 
+	       Micro and a NES controller.
 *****************************************************************************************
+DEMO VIDEO: https://www.youtube.com/watch?v=KUkmpLqLkWs
+*****************************************************************************************
+See examples for implementation.
 *****************************************************************************************
 NES Connector configuration:
 
